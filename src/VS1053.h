@@ -35,7 +35,7 @@
 #define VS1053_H
 
 #include <Arduino.h>
-#include <SPI.h>
+#include <spi.h>
 #include "ConsoleLogger.h"
 
 #include "patches/vs1053b-patches.h"
@@ -48,6 +48,7 @@ enum VS1053_I2S_RATE {
 
 class VS1053 {
 private:
+    SPIClass& spi;                          // SPI interace instance
     uint8_t cs_pin;                         // Pin where CS line is connected
     uint8_t dcs_pin;                        // Pin where DCS line is connected
     uint8_t dreq_pin;                       // Pin where DREQ line is connected
@@ -92,25 +93,25 @@ protected:
     }
 
     inline void control_mode_on() const {
-        SPI.beginTransaction(VS1053_SPI);   // Prevent other SPI users
+        spi.beginTransaction(VS1053_SPI);   // Prevent other SPI users
         digitalWrite(dcs_pin, HIGH);        // Bring slave in control mode
         digitalWrite(cs_pin, LOW);
     }
 
     inline void control_mode_off() const {
         digitalWrite(cs_pin, HIGH);         // End control mode
-        SPI.endTransaction();               // Allow other SPI users
+        spi.endTransaction();               // Allow other SPI users
     }
 
     inline void data_mode_on() const {
-        SPI.beginTransaction(VS1053_SPI);   // Prevent other SPI users
+        spi.beginTransaction(VS1053_SPI);   // Prevent other SPI users
         digitalWrite(cs_pin, HIGH);         // Bring slave in data mode
         digitalWrite(dcs_pin, LOW);
     }
 
     inline void data_mode_off() const {
         digitalWrite(dcs_pin, HIGH);        // End data mode
-        SPI.endTransaction();               // Allow other SPI users
+        spi.endTransaction();               // Allow other SPI users
     }
 
     uint16_t read_register(uint8_t _reg) const;
@@ -125,7 +126,7 @@ protected:
 
 public:
     // Constructor.  Only sets pin values.  Doesn't touch the chip.  Be sure to call begin()!
-    VS1053(uint8_t _cs_pin, uint8_t _dcs_pin, uint8_t _dreq_pin);
+    VS1053(uint8_t _cs_pin, uint8_t _dcs_pin, uint8_t _dreq_pin, SPIClass& _spi = SPI);
 
     // Begin operation.  Sets pins correctly, and prepares SPI bus.
     void begin();
